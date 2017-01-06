@@ -1,0 +1,3 @@
+[submodule "lib/lua-getopt"]
+	path = lib/lua-getopt
+	url = git@github.com:mum-chen/lua-getopt.git
