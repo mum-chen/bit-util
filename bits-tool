@@ -1,0 +1,38 @@
+#!/usr/bin/lua
+-- =============================================================================
+-- path config
+-- =============================================================================
+local function ADDLIBRARY(lib)
+	package.path = string.format("%s;%s", lib, package.path)
+end
+local LUA_GETOPT_PATH = "./lib/lua-getopt/?.lua"
+ADDLIBRARY(LUA_GETOPT_PATH)
+
+local SRC_PATH = "./src/?.lua"
+ADDLIBRARY(SRC_PATH)
+
+-- =============================================================================
+-- import
+-- =============================================================================
+local constant = require("src.constant")
+
+-- =============================================================================
+-- function
+-- =============================================================================
+-- debug
+error = constant.DEBUG and error or function(info)
+	print(info)
+	os.exit(1)
+end
+
+-- print = constant.DEBUG and require("src.color-p").print or print
+print = require("src.color-p").print
+
+
+
+
+-- =============================================================================
+-- entry
+-- =============================================================================
+local bits = require("src.bits")
+bits.run({...})

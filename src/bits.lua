@@ -5,57 +5,37 @@
 -- =============================================================================
 -- import
 -- =============================================================================
-local LUA_GETOPT_PATH = "../lib/lua-getopt/src/?.lua;"
-package.path = LUA_GETOPT_PATH .. package.path
+-- load constant
+local constant = require("constant")
+
+-- load 3rd module
+local getopt = require("getopt")
+
+-- load module
+local input   = require("input")
+local output = require("output")
+local bitmap = require("bitmap")
 
 -- =============================================================================
--- const
+-- options setting
 -- =============================================================================
-local BIN = "b" -- tag binary
-local DEC = "d" -- tag decimal
-local HEX = "h" -- tag hexdecimal
-
--- =============================================================================
--- flages & inner variable
--- =============================================================================
--- type flags
-local input_type  = HEX
-local output_type = BIN
-
--- style flags
-local width  = 32
-local islist = false -- if display with sheet
-
-local gap = 4
-local separator = " "
-
--- inner variable
-local rang = nil  -- rang pattern
-local bitmap = {} -- inner bitmap
-local setmap = {} -- the setting-pattern map
-
--- convert function
-local input
-local output
--- =============================================================================
--- function
--- =============================================================================
-
--- options ---------
 -- help infomation
 local function usage()
 	local info = [[
-	bits number [input-type] [options]
+	bits number [input-base] [options]
 
 	options
+	-h | --help
+	   help info
+
 	-r range_pattern
 	   from:to
 	   from+len
 	   from
 
-	-i | --input-type {b|d|h}
+	-i | --input-base {b|d|h}
 
-	-o | --output-type {b|d|h}
+	-o | --output-base {b|d|h}
 
 	-s | --set-bits {bits,from  [bits,from] [...]}
 
@@ -75,43 +55,72 @@ local function usage()
 	]]
 
 	print(info)
+	os.exit(0)
 end
+getopt.callback("h,help", usage)
 
--- conver function --------------------
--- input hexdecimal to binary
-local function i_h2b()
+local function input_base(base)
+	local _base
+	base = string.lower(base)
+	if constant.HEX == base then
+		_base = 16
+	elseif constant.DEC == base then
+		_base = 10
+	elseif constant.BIN == base then
+		_base = 2
+	else
+		local info = string.format(
+		"error base input, expect get(b|d|h), got %s.\n",
+		tostring(base)
+		)
+		error(info)
+	end
 
+	input:set_base(_base)
 end
+getopt.callback("i,input-base:N:1", input_base)
 
--- input decimal to binary
-local function i_d2b()
+local function set_width(width)
+	local _w = tonumber(width)
+	if not _w then
+		error("width except get number")
+	end
 
+	input:set_width(_w)
 end
+getopt.callback("w,width:N:1", set_width)
 
--- input binary to binary
-local function i_b2b()
 
+local function set_mdf(...)
+	local list = {...}
+	bitmap:set_mdf(list)
 end
-
--- output binary to binary
-local function o_b2b()
-
-end
-
--- output binary to decimal
-local function o_b2d()
-
-end
-
--- output binary to hexdecimal
-local function o_b2h()
-
-end
-
+getopt.callback("s,set-bits:U:1", set_mdf)
 
 -- main function --------------------
-local function main(number, format)
+local function main(number, base)
+	if not number then 
+		error("none number input")
+	end
+	input:set_number(number)
+	local _ = base and input_base(base)
 
+	local i_bits = input:convert()
+	bitmap:set(i_bits)
+	bitmap:modify()
+		
+	local o_bits = bitmap:get()
+	output:set(o_bits)
+	output:get()
+end
+getopt.setmain(main)
+
+
+-- =============================================================================
+-- main entry
+-- =============================================================================
+local function run(param)
+	getopt.run(param)
 end
 
--- register opts
+return { run = run }
