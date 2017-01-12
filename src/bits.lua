@@ -118,12 +118,12 @@ getopt.callback("l:N:1", set_list)
 local function nolist()
 	output:set_list(false)
 end
-getopt.callback("no-list:N:1", nolist)
+getopt.callback("no-list", nolist)
 
 local function list()
 	output:set_list(true)
 end
-getopt.callback("list:N:1", list)
+getopt.callback("list", list)
 
 
 -- main function --------------------
