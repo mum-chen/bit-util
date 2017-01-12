@@ -31,7 +31,9 @@ local function usage()
 	-r range_pattern
 	   from:to
 	   from+len
-	   from
+	   from      same as from:from
+	   from:     same as from:end
+	   from+     same as from
 
 	-i | --input-base {b|d|h}
 
@@ -96,6 +98,33 @@ local function set_mdf(...)
 	bitmap:set_mdf(list)
 end
 getopt.callback("s,set-bits:U:1", set_mdf)
+
+local function set_range(pattern)
+	output:set_range(pattern)
+end
+getopt.callback("r,range:N:1", set_range)
+
+local function set_list(list)
+	if (list == "y") or  (lsit == "Y") then
+		output:set_list(true)
+	elseif (list == "n") or (list == "N") then
+		output:set_list(false)
+	else
+		error("error set list input")
+	end
+end
+getopt.callback("l:N:1", set_list)
+
+local function nolist()
+	output:set_list(false)
+end
+getopt.callback("no-list:N:1", nolist)
+
+local function list()
+	output:set_list(true)
+end
+getopt.callback("list:N:1", list)
+
 
 -- main function --------------------
 local function main(number, base)

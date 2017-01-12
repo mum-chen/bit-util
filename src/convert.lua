@@ -91,10 +91,52 @@ local function binstr_to_table(binstr, width)
 	return bits
 end
 
+--[[
+@pattern
+	a:b   from bit a to bit b
+	a+b   same as a:(a+b)
+	a     same as a:a or a+1
+	a+    same as a
+	a:    same as a:end
+@return	from, to
+--]]
+local function parse_range(pattern)
+	local i1, i2, o, b, e -- input1, input2, operator, begin, end
+	i1, o, i2 = string.match(pattern,"(%d+)([+:])(%d+)")
 
+	i1 = o and i1 or string.match(pattern,"(%d+)")
+	i1 = tonumber(i1)
+
+	if not o then
+		-- set default pattern, same as b+1
+		o = string.match(pattern, ".*([+:]).*") or "+"
+	else
+		i2 = tonumber(i2)
+	end
+
+	-- the minimum begin index is 1
+	b = (not i1 or i1 < 0) and 1 or (i1 + 1)
+
+	-- i2 always got value in here
+	if o == "+" then
+		i2 = i2 or 1
+		e = i2 and (b + i2 - 1)
+	elseif o == ":" then
+		if i2 then
+			e = i2 and (i2 + 1)
+			if b > e then
+				b, e = e, b
+			end
+		end
+		-- else e == nil
+	end
+
+	return b, e
+end
 
 return {
 	base_check = base_check,
+	parse_range = parse_range,
 	input_convert   = input_convert,
 	_input_convert  = _input_convert,
 	binstr_to_table = binstr_to_table,

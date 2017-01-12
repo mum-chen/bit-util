@@ -5,6 +5,7 @@
 local function ADDLIBRARY(lib)
 	package.path = string.format("%s;%s", lib, package.path)
 end
+
 local LUA_GETOPT_PATH = "./lib/lua-getopt/?.lua"
 ADDLIBRARY(LUA_GETOPT_PATH)
 
