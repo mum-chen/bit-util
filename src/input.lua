@@ -15,7 +15,7 @@ local input = {
 	-- base flags
 	base  = 16,
 	-- modification list
-	width  = 32,
+	width  = 0,
 }
 
 -- public function---------------------
