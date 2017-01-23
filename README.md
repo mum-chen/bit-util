@@ -1,3 +1,23 @@
+INSTALL:
+======
+first install
+-------------
+```
+make prep && make && make install
+```
+
+detail
+------
+make prep
+	prep submodule
+
+make
+	genrate the shell script
+
+make install
+	link shell script to /usr/bin
+
+
 TODO:
 =====
  - This version only output with binary format,

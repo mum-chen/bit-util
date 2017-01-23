@@ -2,6 +2,9 @@
 build:
 	@lua install/build.lua `pwd`
 
+prep:
+	git submodule update --init --recursive
+
 .PHONY: install force_install
 install:bits.sh
 	sudo ln -s `pwd`/bits.sh  /usr/bin/bits
