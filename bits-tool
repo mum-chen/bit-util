@@ -15,13 +15,13 @@ ADDLIBRARY(SRC_PATH)
 -- =============================================================================
 -- import
 -- =============================================================================
-local constant = require("src.constant")
+DEBUG = false
 
 -- =============================================================================
 -- function
 -- =============================================================================
 -- debug
-error = constant.DEBUG and error or function(info)
+error = DEBUG and error or function(info)
 	print(info)
 	os.exit(1)
 end

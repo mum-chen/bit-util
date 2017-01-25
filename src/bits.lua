@@ -5,8 +5,7 @@
 -- =============================================================================
 -- import
 -- =============================================================================
--- load constant
-local constant = require("constant")
+local convert = require("convert")
 
 -- load 3rd module
 local getopt = require("getopt")
@@ -51,9 +50,14 @@ local function usage()
 	   the min-bits in input, defualt is -w 32
 	   make sense only in --output is not list
 
-	-d | --separator | --delimiter {len [separator]}
+	-d | --delimiter {gap separator}
 	   default is '-d 4 " " '
 	   make sense only in --output is not list
+
+	--gap {len}
+	   default is '--gap 4'
+	--sep {separator}
+	   default is '--sep " "'
 	]]
 
 	print(info)
@@ -61,23 +65,9 @@ local function usage()
 end
 getopt.callback("h,help", usage)
 
+-- input config -----------------------
 local function input_base(base)
-	local _base
-	base = string.lower(base)
-	if constant.HEX == base then
-		_base = 16
-	elseif constant.DEC == base then
-		_base = 10
-	elseif constant.BIN == base then
-		_base = 2
-	else
-		local info = string.format(
-		"error base input, expect get(b|d|h), got %s.\n",
-		tostring(base)
-		)
-		error(info)
-	end
-
+	local _base = convert.parse_base(base)
 	input:set_base(_base)
 end
 getopt.callback("i,input-base:N:1", input_base)
@@ -92,13 +82,15 @@ local function set_width(width)
 end
 getopt.callback("w,width:N:1", set_width)
 
-
+-- bitmap config -----------------------
 local function set_mdf(...)
 	local list = {...}
 	bitmap:set_mdf(list)
 end
 getopt.callback("s,set-bits:U:1", set_mdf)
 
+
+-- output config -----------------------
 local function set_range(pattern)
 	output:set_range(pattern)
 end
@@ -110,7 +102,7 @@ local function set_list(list)
 	elseif (list == "n") or (list == "N") then
 		output:set_list(false)
 	else
-		error("error set list input")
+		error("error set list output")
 	end
 end
 getopt.callback("l:N:1", set_list)
@@ -125,14 +117,37 @@ local function list()
 end
 getopt.callback("list", list)
 
+local function output_base(base)
+	local _base = convert.parse_base(base)
+	output:set_base(_base)
+end
+getopt.callback("o,output-base:N:1", output_base)
+
+local function set_gap(len)
+	output:set_style(nil, tonumber(len))
+end
+getopt.callback("gap:N:1", set_gap)
+
+local function set_sep(separator)
+	output:set_style(separator, nil)
+end
+getopt.callback("sep:N:1", set_sep)
+
+local function set_delimiter(gap, sep)
+	set_sep(sep)
+	set_gap(gap)
+end
+getopt.callback("d,delimiter:N:2", set_delimiter)
 
 -- main function --------------------
-local function main(number, base)
+local function main(number, ibase, obase)
 	if not number then 
-		error("none number input")
+		error("none number input, you call use -h for help")
 	end
 	input:set_number(number)
-	local _ = base and input_base(base)
+	local _ = ibase and input_base(ibase)
+	local _ = obase and output_base(obase)
+
 
 	local i_bits = input:convert()
 	bitmap:set(i_bits)
@@ -140,10 +155,9 @@ local function main(number, base)
 		
 	local o_bits = bitmap:get()
 	output:set(o_bits)
-	output:get()
+	output:print()
 end
 getopt.setmain(main)
-
 
 -- =============================================================================
 -- main entry

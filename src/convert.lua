@@ -1,24 +1,12 @@
+local base = require("base")
+
 -- =============================================================================
--- data define
+-- constant define
 -- =============================================================================
--- inner data
-local BASE = {
-	["0"] = 0,
-	["1"] = 1,
-	["2"] = 2,
-	["3"] = 3,
-	["4"] = 4,
-	["5"] = 5,
-	["6"] = 6,
-	["7"] = 7,
-	["8"] = 8,
-	["9"] = 9,
-	["A"] = 10,
-	["B"] = 11,
-	["C"] = 12,
-	["D"] = 13,
-	["E"] = 14,
-	["F"] = 15,
+local constant = {
+	BIN = "b", -- tag binary
+	DEC = "d", -- tag decimal
+	HEX = "h", -- tag hexdecimal
 }
 
 -- =============================================================================
@@ -36,40 +24,12 @@ local function base_check(str, base)
 	return true
 end
 
-
---[[
-@str	:number input
-@base	:the number base
-@return :bin-str
---]]
-local function _input_convert(str, base)
-	local obase = "obase=2;"
-	
-	if base == 10 then
-		ibase = ""
-	else
-		ibase = string.format("ibase=%d;", base)
-	end
-
-	local cmd = string.format('echo "%s%s%s" | bc', ibase, obase, str)
-
-	local binstr = io.popen(cmd):read("*all"):gsub("%c", "")
-
-	local ret = binstr:match("^%d(.*)")
-	if not ret then
-		os.exit(1)
-	end
-
-	return binstr
+local function input_convert(str, ibase)
+	return base.convert(str, ibase, 2)
 end
 
-local function input_convert(str, base)
-	local ret, info = base_check(str, base)
-	if not ret then
-		error(info)
-	end
-
-	return _input_convert(str, base)
+local function output_convert(binstr, obase)
+	return base.convert(binstr, 2, obase)
 end
 
 -- convert binstr to bits-table
@@ -89,6 +49,23 @@ local function binstr_to_table(binstr, width)
 	end
 
 	return bits
+end
+
+-- convert bits-table to binstr
+local function table_to_binstr(bits_table, from, to)
+	local from = from or 1
+	local to = to or #bits_table
+
+	local bits = {}
+	
+	local idx = from
+
+	while idx <= to do
+		table.insert(bits, 1, bits_table[idx])
+		idx = idx + 1
+	end
+
+	return table.concat(bits)
 end
 
 --[[
@@ -134,10 +111,42 @@ local function parse_range(pattern)
 	return b, e
 end
 
+-- base expect get (b|d|h|2~16) case error will exit
+local function parse_base(_base)
+	local _base = string.lower(_base)
+	local num = tonumber(_base)
+	local info = nil
+
+	if tonumber(num) then
+		_base = num
+	elseif constant.HEX == _base then
+		_base = 16
+	elseif constant.DEC == _base then
+		_base = 10
+	elseif constant.BIN == _base then
+		_base = 2
+	else
+		info = string.format(
+		"error base , expect get(b|d|h|2~16), got %s.\n",
+		tostring(_base)
+		)
+		error(info)
+	end
+
+	-- if fail will exit
+	base.checkbase(_base)
+
+	return _base
+end
+
 return {
-	base_check = base_check,
+	parse_base = parse_base,
 	parse_range = parse_range,
-	input_convert   = input_convert,
-	_input_convert  = _input_convert,
 	binstr_to_table = binstr_to_table,
+	table_to_binstr = table_to_binstr,
+
+	-- base convert
+	base_check = base.checkbase_str,
+	input_convert   = input_convert,
+	output_convert  = output_convert,
 }

@@ -3,7 +3,6 @@
 -- =============================================================================
 local convert = require("convert")
 
-local parse_range = convert.parse_range
 -- =============================================================================
 -- output
 -- =============================================================================
@@ -42,13 +41,14 @@ end
 local function print_string(output)
 	local gap = 1
 	local str_arr = {}
-	local from, to = output:get_range()
+	local to, from = output:get_range()
 	local head = string.format("%d,%d:", to - 1, from - 1)
 
+	local binstr = output:binstr()
+	local str = convert.output_convert(binstr, output.base)
 
-	for i = from, to, 1 do
-		table.insert(str_arr, output:bit(i))
-
+	for word in string.gmatch(str, "%w") do
+		table.insert(str_arr, word)
 		if gap == output.gap then
 			table.insert(str_arr, output.sep)
 			gap = 1
@@ -57,14 +57,12 @@ local function print_string(output)
 		end
 	end
 
-	local last = #str_arr
-	if str_arr[last] == output.sep then
-		str_arr[last] = " "
+	-- insert white-space and replace the first separator
+	if str_arr[1] == output.sep then
+		str_arr[1] = " "
 	else
-		str_arr[last + 1] = " "
+		table.insert(str_arr, 1, " ")
 	end
-
-	reverse(str_arr)
 
 	local body = table.concat(str_arr)
 
@@ -78,32 +76,21 @@ local function print_list(output)
 	local head = string.format("%d,%d:\n", to - 1, from - 1)
 
 	for i = from, to, 1 do
-		local templete = string.format("[%d] = %s", i - 1, output:bit(i))
-		table.insert(str_arr, templete)
+		local templete = string.format("[%d] = %s", i - 1, output:bitat(i))
+		table.insert(str_arr, 1, templete)
 	end
 	
-	reverse(str_arr)
-
 	local body = table.concat(str_arr, "\n")
 
 	print(head .. body)
 end
 
 -- public function---------------------
---[[
-    the range only be configed one times
---]]
-function output:_set_range(from, to)
-	self.from = self.from or from
-	self.to   = self.to or to
-end
-
 function output:get_range()
 	return self.from, self.to
 end
 
-
-function output:bit(idx)
+function output:bitat(idx)
 	return self.data[idx]
 end
 
@@ -119,29 +106,57 @@ function output:isfull()
 	return true
 end
 
+function output:binstr()
+	return convert.table_to_binstr(self.data, self:get_range())
+end
+
+-- ======= config function ============
+--[[
+    the range only be configed one times
+--]]
+function output:set_range_once(from, to)
+	self.from = self.from or from
+	self.to   = self.to or to
+end
+
+--[[
+the output range
+--]]
 function output:set_range(pattern)
-	local from, to = parse_range(pattern)
-	self:_set_range(from, to)
+	local from, to = convert.parse_range(pattern)
+	self:set_range_once(from, to)
 end
 
+--[[
+the style of output( separator, gap)
+--]]
 function output:set_style(sep, gap)
-	self.sep = sep
-	self.gap = gap
+	self.sep = sep or self.sep
+	self.gap = gap or self.gap
 end
 
+--[[
+Did the output with list-style.
+--]]
 function output:set_list(islist)
 	self.islist = islist
 end
 
-function output:set(bits_table)
-	self.data = bits_table
-	self:_set_range(1, #bits_table)
+function output:set_base(obase)
+	self.base = obase
 end
 
-function output:get()
-	local list = self.islist
+--[[
+@bits_table
+	usually from bitmap:get()
+--]]
+function output:set(bits_table)
+	self.data = bits_table
+	self:set_range_once(1, #bits_table)
+end
 
-	if list then
+function output:print()
+	if self.base == 2 and self.islist then
 		print_list(self)
 	else
 		print_string(self)

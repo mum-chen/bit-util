@@ -1,7 +1,6 @@
 -- =============================================================================
 -- import
 -- =============================================================================
-local constant = require("constant")
 local convert  = require("convert")
 
 _convert_base = convert.input_convert
