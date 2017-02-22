@@ -12,6 +12,7 @@ ADDLIBRARY(LUA_GETOPT_PATH)
 local SRC_PATH = "./src/?.lua"
 ADDLIBRARY(SRC_PATH)
 
+require("src.compatibility")
 -- =============================================================================
 -- import
 -- =============================================================================
@@ -28,9 +29,6 @@ end
 
 -- print = constant.DEBUG and require("src.color-p").print or print
 print = require("src.color-p").print
-
-
-
 
 -- =============================================================================
 -- entry
