@@ -49,7 +49,7 @@ function mdf_item:new(pattern)
 	
 	bits_table = self.convert(bits)
 	
-	from = tonumber(from)
+	from = tonumber(from) + 1
 
 	local to = from + #bits - 1
 

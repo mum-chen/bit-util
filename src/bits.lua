@@ -39,6 +39,7 @@ local function usage()
 	-o | --output-base {b|d|h}
 
 	-s | --set-bits {bits,from  [bits,from] [...]}
+	    index from 0
 
 	-l <y|n>
 	   when setting option "-r", this value will set y(--list) at the same time
