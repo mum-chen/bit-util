@@ -49,8 +49,11 @@ local function print_string(output)
 
 	for word in string.gmatch(str, "%w") do
 		table.insert(str_arr, word)
+	end
+
+	for i = #str_arr, 1, -1 do
 		if gap == output.gap then
-			table.insert(str_arr, output.sep)
+			table.insert(str_arr, i, output.sep)
 			gap = 1
 		else
 			gap = gap + 1
